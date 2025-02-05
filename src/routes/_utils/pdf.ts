@@ -19,15 +19,16 @@ type AddSeparateRulesProps = {
 	doc: jsPDF;
 	weaponsWrapperRef: HTMLElement;
 	scale: number;
+	rosterName?: string;
 };
 
-const addSeparateRules = ({ doc, weaponsWrapperRef, scale }: AddSeparateRulesProps) => {
+const addSeparateRules = ({ doc, weaponsWrapperRef, scale, rosterName }: AddSeparateRulesProps) => {
 	doc.addPage();
 	const numberOfPages = doc.getNumberOfPages();
 
 	doc.html(weaponsWrapperRef, {
 		...getDefaultPDFOptions(scale),
-		callback: (d) => d.save(),
+		callback: (d) => d.save(rosterName),
 		y: (numberOfPages - 1) * A4.y - MARGIN.y * (numberOfPages * 2 - 2)
 	});
 };
@@ -35,9 +36,14 @@ const addSeparateRules = ({ doc, weaponsWrapperRef, scale }: AddSeparateRulesPro
 type GeneratePDFProps = {
 	mainSheetWrapperRef: HTMLElement;
 	weaponsWrapperRef?: HTMLElement;
+	rosterName?: string;
 };
 
-export const generatePDF = ({ mainSheetWrapperRef, weaponsWrapperRef }: GeneratePDFProps) => {
+export const generatePDF = ({
+	mainSheetWrapperRef,
+	weaponsWrapperRef,
+	rosterName
+}: GeneratePDFProps) => {
 	const doc = new jsPDF('p', 'pt');
 	const scale = getPDFScale(mainSheetWrapperRef.clientWidth);
 	const anyWeaponsDefined = weaponsWrapperRef?.hasChildNodes();
@@ -46,8 +52,8 @@ export const generatePDF = ({ mainSheetWrapperRef, weaponsWrapperRef }: Generate
 	doc.html(mainSheetWrapperRef, {
 		...getDefaultPDFOptions(scale),
 		callback: (doc2) => {
-			if (!weaponsWrapperRef || !anyWeaponsDefined) return doc2.save();
-			return addSeparateRules({ doc: doc2, weaponsWrapperRef, scale });
+			if (!weaponsWrapperRef || !anyWeaponsDefined) return doc2.save(rosterName);
+			return addSeparateRules({ doc: doc2, weaponsWrapperRef, scale, rosterName });
 		}
 	});
 };

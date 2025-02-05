@@ -30,7 +30,11 @@
 
 	const handleClick = () => {
 		if (!mainSheetWrapperRef) return;
-		generatePDF({ mainSheetWrapperRef, weaponsWrapperRef });
+		generatePDF({
+			mainSheetWrapperRef,
+			weaponsWrapperRef,
+			rosterName: fileData?.name ?? fileData?.faction.name
+		});
 	};
 
 	const handleReaderLoad = (e: ProgressEvent<FileReader>) => {
