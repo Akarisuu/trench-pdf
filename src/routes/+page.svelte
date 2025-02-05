@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/i18n/messages';
 	import { type ValidCompendiumData } from '$lib/schemas/compendium';
+	import { groupBy } from '$lib/utils/groupBy';
 
 	import BasicInfoTable from './_components/basicInfoTable.svelte';
 	import ModelInfoTable from './_components/modelInfoTable.svelte';
@@ -28,7 +29,7 @@
 
 	let { mainSheetRules, separateWeaponsRules } = $derived.by(() => {
 		const rulesList = Object.values(getRules(fileData?.members));
-		const rulesByCategory = Object.groupBy(rulesList, (r) => r.category ?? '');
+		const rulesByCategory = groupBy(rulesList, (r) => r.category);
 		const categoryRulesTuples = Object.entries(rulesByCategory) as GroupedRules;
 		const sortedCategories = categoryRulesTuples.sort(
 			([a], [b]) => CATEGORY_ORDER[a] - CATEGORY_ORDER[b]
