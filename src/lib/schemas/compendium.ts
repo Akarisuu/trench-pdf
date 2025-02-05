@@ -21,8 +21,8 @@ const contentSchema = z.object({
 				id: z.string()
 			})
 		)
-		.nullish(),
-	subContent: z.array(z.any()).nullish()
+		.nullish()
+	// subContent: z.array(z.any()).nullish()
 });
 type CompendiumContent = z.infer<typeof contentSchema>;
 export type Ability = CompendiumContent;
@@ -39,7 +39,7 @@ const equipmentObjectSchema = z.object({
 	id: z.string(),
 	tags: z.array(tagSchema).nullish(),
 	name: z.string(),
-	category: equipmentCategorySchema.nullish(),
+	category: equipmentCategorySchema,
 	equipType: z.string().nullish(),
 	range: z.string().nullish(),
 	modifiers: z.array(z.string()).nullish(),

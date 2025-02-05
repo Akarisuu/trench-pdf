@@ -2,7 +2,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as m from '$lib/i18n/messages';
 
-	import type { Rule } from '../_utils/types';
+	import type { Rule } from '../_utils';
 
 	type Props = {
 		rule: Rule;

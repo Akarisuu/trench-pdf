@@ -14,9 +14,9 @@
 		formatNumericToDiceModifier
 	} from '../_utils/transformers';
 
-	type Props = { member: Member; ref: HTMLElement };
+	type Props = { member: Member };
 
-	let { member, ref = $bindable() }: Props = $props();
+	let { member }: Props = $props();
 
 	const name = createNameWithFallback(member);
 	const tags = createTagsList(member);
@@ -30,7 +30,7 @@
 	const skillsInjuriesList = createSkillsInjuriesList(member);
 </script>
 
-<div bind:this={ref}>
+<div>
 	<Table.Root class="mb-6 table-fixed border-y">
 		<Table.Header class="border">
 			<Table.Row>

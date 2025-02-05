@@ -5,13 +5,12 @@
 
 	type Props = {
 		fileData: ValidCompendiumData;
-		ref: HTMLElement;
 	};
 
-	let { fileData, ref = $bindable() }: Props = $props();
+	let { fileData }: Props = $props();
 </script>
 
-<div bind:this={ref}>
+<div>
 	<Table.Root class="mb-8 border-b">
 		<Table.Header>
 			<Table.Row>

@@ -11,16 +11,16 @@
 	import { generatePDF } from '../_utils/pdf';
 
 	type Props = {
-		listWrapperRef: HTMLElement | undefined;
-		rulesWrapperRef: HTMLElement | undefined;
+		mainSheetWrapperRef: HTMLElement | undefined;
+		weaponsWrapperRef: HTMLElement | undefined;
 		files: FileList | undefined;
 		fileData: ValidCompendiumData | undefined;
 		separateWeapons: boolean;
 	};
 
 	let {
-		listWrapperRef = $bindable(),
-		rulesWrapperRef = $bindable(),
+		mainSheetWrapperRef = $bindable(),
+		weaponsWrapperRef = $bindable(),
 		files = $bindable(),
 		fileData = $bindable(),
 		separateWeapons = $bindable()
@@ -29,8 +29,8 @@
 	let fileError = $state<string>();
 
 	const handleClick = () => {
-		if (!listWrapperRef) return;
-		generatePDF({ listRef: listWrapperRef, rulesRef: rulesWrapperRef });
+		if (!mainSheetWrapperRef) return;
+		generatePDF({ mainSheetWrapperRef, weaponsWrapperRef });
 	};
 
 	const handleReaderLoad = (e: ProgressEvent<FileReader>) => {
@@ -88,7 +88,7 @@
 		disabled={!!fileError}
 		label={m.home_input_separateWeapons()}
 	/>
-	<Button disabled={!!fileError || !listWrapperRef} onclick={handleClick} class="mt-4"
+	<Button disabled={!!fileError || !mainSheetWrapperRef} onclick={handleClick} class="mt-4"
 		>{m.home_input_submit()}</Button
 	>
 </div>

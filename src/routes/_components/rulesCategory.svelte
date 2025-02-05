@@ -1,20 +1,18 @@
 <script lang="ts">
-	import { CATEGORY_ORDER, type RulesCategory } from '../_utils/consts';
-	import type { Rule } from '../_utils/types';
+	import type { Rule, RulesCategory } from '../_utils/consts';
 
 	import WeaponInfoTable from './weaponInfoTable.svelte';
 
 	type Props = {
-		ref?: Record<string, HTMLElement>;
 		category: RulesCategory;
 		ruleset: Rule[];
 	};
 
-	const { ref = $bindable({}), category, ruleset }: Props = $props();
+	const { category, ruleset }: Props = $props();
 </script>
 
 {#each ruleset as rule, index (rule.name)}
-	<div bind:this={ref[`4_${CATEGORY_ORDER[category]}_${index}`]}>
+	<div>
 		{#if index === 0}
 			<h2 class="pb-3 pt-6 text-3xl font-bold capitalize">
 				{category}

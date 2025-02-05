@@ -1,8 +1,7 @@
 import { abilities as abilitiesData } from '$lib/data/abilities.json';
 import type { Ability, Equipment, Injury, Member, Skill, Upgrade } from '$lib/schemas/compendium';
 
-import type { RulesCategory } from './consts';
-import type { Rules } from './types';
+import type { Rules, RulesCategory } from './consts';
 
 const collectEquipment = (equipment: Equipment[], rules: Rules) => {
 	equipment.forEach((e) => {
@@ -14,7 +13,7 @@ const collectEquipment = (equipment: Equipment[], rules: Rules) => {
 			name: e.object.name,
 			description:
 				descriptionShape?.content.toLowerCase() === 'rule:'
-					? (e.object.description?.[0]?.subContent?.[0]?.content ?? undefined)
+					? (descriptionShape?.subContent?.[0]?.content ?? undefined)
 					: descriptionShape?.content,
 			category: e.object.category,
 			modifiers: e.object.modifiers,
@@ -71,3 +70,5 @@ export const getRules = (members?: Member[]) => {
 
 	return rules;
 };
+
+export const getCategoryRulesKey = (id: string, category: RulesCategory) => `${id}_${category}`;

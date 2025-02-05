@@ -3,17 +3,18 @@
 	import { type ValidCompendiumData } from '$lib/schemas/compendium';
 
 	import BasicInfoTable from './_components/basicInfoTable.svelte';
-	import CategoryRules from './_components/categoryRules.svelte';
 	import ModelInfoTable from './_components/modelInfoTable.svelte';
 	import PdfForm from './_components/pdfForm.svelte';
+	import RulesCategory from './_components/rulesCategory.svelte';
 	import {
 		CATEGORY_ORDER,
+		getCategoryRulesKey,
+		getEmptyRulesetCollection,
 		getRules,
+		isWeaponsCategory,
 		preventElementsSplitOnPage,
-		sortChildrenByKeys,
-		WEAPONS_CATEGORIES,
-		type WeaponCategory,
-		type GroupedRules
+		type GroupedRules,
+		type RulesetCollections
 	} from './_utils';
 
 	let files = $state<FileList>();
@@ -22,32 +23,31 @@
 		separateWeapons: true
 	});
 
-	let listWrapperRef = $state<HTMLElement>();
-	let rulesWrapperRef = $state<HTMLElement>();
-	let ruleRefs = $state<Record<string, HTMLElement>>({});
-	let listRefs = $state<Record<string, HTMLElement>>({});
+	let mainSheetWrapperRef = $state<HTMLElement>();
+	let weaponsWrapperRef = $state<HTMLElement>();
 
-	let rules = $derived(getRules(fileData?.members));
-	let anyRulesDefined = $derived(Object.keys(rules).length > 0);
-	let groupedRules = $derived.by(() => {
-		const rulesList = Object.values(rules);
+	let { mainSheetRules, separateWeaponsRules } = $derived.by(() => {
+		const rulesList = Object.values(getRules(fileData?.members));
 		const rulesByCategory = Object.groupBy(rulesList, (r) => r.category ?? '');
 		const categoryRulesTuples = Object.entries(rulesByCategory) as GroupedRules;
+		const sortedCategories = categoryRulesTuples.sort(
+			([a], [b]) => CATEGORY_ORDER[a] - CATEGORY_ORDER[b]
+		);
 
-		return categoryRulesTuples.sort(([a], [b]) => CATEGORY_ORDER[a] - CATEGORY_ORDER[b]);
+		return sortedCategories.reduce<RulesetCollections>((acc, [category, ruleset]) => {
+			if (pdfFormOptions.separateWeapons && isWeaponsCategory(category))
+				acc.separateWeaponsRules.push([category, ruleset]);
+			else acc.mainSheetRules.push([category, ruleset]);
+
+			return acc;
+		}, getEmptyRulesetCollection());
 	});
 
 	$effect(() => {
-		if (!listRefs) return;
-
-		// Run in both cases. The if() check is here only to trigger $effect reactivity.
-		if (pdfFormOptions.separateWeapons || !pdfFormOptions.separateWeapons) {
-			const rulesChildren = sortChildrenByKeys(ruleRefs);
-			const listChildren = sortChildrenByKeys(listRefs);
-
-			if (listChildren.length > 0) preventElementsSplitOnPage(listChildren);
-			if (rulesChildren.length > 0) preventElementsSplitOnPage(rulesChildren);
-		}
+		if (mainSheetWrapperRef && mainSheetWrapperRef.children.length > 0)
+			preventElementsSplitOnPage(mainSheetWrapperRef);
+		if (weaponsWrapperRef && weaponsWrapperRef.children.length > 0)
+			preventElementsSplitOnPage(weaponsWrapperRef);
 	});
 </script>
 
@@ -62,39 +62,37 @@
 <PdfForm
 	bind:fileData
 	bind:files
-	bind:rulesWrapperRef
-	bind:listWrapperRef
+	bind:weaponsWrapperRef
+	bind:mainSheetWrapperRef
 	bind:separateWeapons={pdfFormOptions.separateWeapons}
 />
 
 <div class="h-0 w-[1400px] overflow-hidden">
 	{#if fileData}
-		<section bind:this={listWrapperRef} class="light">
-			<BasicInfoTable {fileData} bind:ref={listRefs[`1`]} />
+		{#key mainSheetRules}
+			<section bind:this={mainSheetWrapperRef} class="light">
+				<BasicInfoTable {fileData} />
 
-			{#each fileData.members as member, index (`${member.name}_${index}`)}
-				{#if !member.reserve}
-					<ModelInfoTable {member} bind:ref={listRefs[`2_${index}`]} />
-				{/if}
-			{/each}
-			{#if anyRulesDefined}
-				<h1 class="pb-4 text-4xl font-bold" bind:this={listRefs[`3`]}>
-					{m.home_list_rules()}
-				</h1>
-				{#each groupedRules as [category, ruleset] (`${fileData.id}_${category}`)}
-					{#if !pdfFormOptions.separateWeapons || !WEAPONS_CATEGORIES.includes(category as WeaponCategory)}
-						<CategoryRules {category} {ruleset} bind:ref={listRefs} />
+				{#each fileData.members as member, index (`${member.name}_${index}`)}
+					{#if !member.reserve}
+						<ModelInfoTable {member} />
 					{/if}
 				{/each}
-			{/if}
-		</section>
+				{#if !!mainSheetRules.length}
+					<h1 class="pb-4 text-4xl font-bold">
+						{m.home_list_rules()}
+					</h1>
+					{#each mainSheetRules as [category, ruleset] (getCategoryRulesKey(fileData.id, category))}
+						<RulesCategory {category} {ruleset} />
+					{/each}
+				{/if}
+			</section>
+		{/key}
 
-		{#if pdfFormOptions.separateWeapons && anyRulesDefined}
-			<section bind:this={rulesWrapperRef} class="light">
-				{#each groupedRules as [category, ruleset] (`${fileData.id}_${category}`)}
-					{#if WEAPONS_CATEGORIES.includes(category as WeaponCategory)}
-						<CategoryRules {category} {ruleset} bind:ref={ruleRefs} />
-					{/if}
+		{#if !!separateWeaponsRules.length}
+			<section bind:this={weaponsWrapperRef} class="light">
+				{#each separateWeaponsRules as [category, ruleset] (getCategoryRulesKey(fileData.id, category))}
+					<RulesCategory {category} {ruleset} />
 				{/each}
 			</section>
 		{/if}

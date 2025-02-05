@@ -1,48 +1,60 @@
-import jsPDF from 'jspdf';
+import jsPDF, { type HTMLOptions } from 'jspdf';
 import '$lib/assets/fonts/Poppins-bold';
 import '$lib/assets/fonts/Poppins-normal';
 
 import { A4, MARGIN, PAGE_WRITABLE_SPACE } from './consts';
 
-type GeneratePDFProps = {
-	listRef: HTMLElement;
-	rulesRef?: HTMLElement;
-};
+const margin = [MARGIN.y, MARGIN.x, MARGIN.y, MARGIN.x];
 
 const getPDFScale = (elementWidth: number) => (A4.x - 2 * MARGIN.x) / elementWidth;
+const getDefaultPDFOptions = (scale: number): HTMLOptions => ({
+	html2canvas: {
+		scale
+	},
+	autoPaging: 'text',
+	margin
+});
 
-export const generatePDF = ({ listRef, rulesRef }: GeneratePDFProps) => {
-	const doc = new jsPDF('p', 'pt');
-	const scale = getPDFScale(listRef.clientWidth);
+type AddSeparateRulesProps = {
+	doc: jsPDF;
+	weaponsWrapperRef: HTMLElement;
+	scale: number;
+};
 
-	doc.setFont('Poppins');
-	doc.html(listRef, {
-		callback: (doc2) => {
-			if (rulesRef) {
-				doc2.addPage();
-				doc2.html(rulesRef, {
-					callback: (d) => d.save(),
-					html2canvas: {
-						scale
-					},
-					autoPaging: 'text',
-					margin: [MARGIN.y, MARGIN.x, MARGIN.y, MARGIN.x],
-					y: (doc2.getNumberOfPages() - 1) * A4.y - MARGIN.y * (doc2.getNumberOfPages() * 2 - 2)
-				});
-			} else {
-				doc2.save();
-			}
-		},
-		html2canvas: {
-			scale
-		},
-		autoPaging: 'text',
-		margin: [MARGIN.y, MARGIN.x, MARGIN.y, MARGIN.x]
+const addSeparateRules = ({ doc, weaponsWrapperRef, scale }: AddSeparateRulesProps) => {
+	doc.addPage();
+	const numberOfPages = doc.getNumberOfPages();
+
+	doc.html(weaponsWrapperRef, {
+		...getDefaultPDFOptions(scale),
+		callback: (d) => d.save(),
+		y: (numberOfPages - 1) * A4.y - MARGIN.y * (numberOfPages * 2 - 2)
 	});
 };
 
-export const preventElementsSplitOnPage = (elements: HTMLElement[]) => {
-	const scale = getPDFScale(elements[0].clientWidth);
+type GeneratePDFProps = {
+	mainSheetWrapperRef: HTMLElement;
+	weaponsWrapperRef?: HTMLElement;
+};
+
+export const generatePDF = ({ mainSheetWrapperRef, weaponsWrapperRef }: GeneratePDFProps) => {
+	const doc = new jsPDF('p', 'pt');
+	const scale = getPDFScale(mainSheetWrapperRef.clientWidth);
+	const anyWeaponsDefined = weaponsWrapperRef?.hasChildNodes();
+
+	doc.setFont('Poppins');
+	doc.html(mainSheetWrapperRef, {
+		...getDefaultPDFOptions(scale),
+		callback: (doc2) => {
+			if (!weaponsWrapperRef || !anyWeaponsDefined) return doc2.save();
+			return addSeparateRules({ doc: doc2, weaponsWrapperRef, scale });
+		}
+	});
+};
+
+export const preventElementsSplitOnPage = (element: HTMLElement) => {
+	const elements = Array.from(element.children) as HTMLElement[];
+	const scale = getPDFScale(element.clientWidth);
 
 	let cumulativeHeight = 0;
 	for (const el of elements) {
