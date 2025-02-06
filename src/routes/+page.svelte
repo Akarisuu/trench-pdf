@@ -36,9 +36,15 @@
 		);
 
 		return sortedCategories.reduce<RulesetCollections>((acc, [category, ruleset]) => {
+			const sortedRuleset = ruleset.sort(({ name: a }, { name: b }) => {
+				if (a > b) return 1;
+				if (a < b) return -1;
+				return 0;
+			});
+
 			if (pdfFormOptions.separateWeapons && isWeaponsCategory(category))
-				acc.separateWeaponsRules.push([category, ruleset]);
-			else acc.mainSheetRules.push([category, ruleset]);
+				acc.separateWeaponsRules.push([category, sortedRuleset]);
+			else acc.mainSheetRules.push([category, sortedRuleset]);
 
 			return acc;
 		}, getEmptyRulesetCollection());
